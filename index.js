@@ -30,7 +30,14 @@ var TraficLight = function(config) {
       /** @private */
     _config = config;
 
-    this.config = config;
+      /**
+       * Геттер для конфига
+       *
+       * @return {Object} config
+       */
+    this.getConfig = function() {
+      return _config;
+    };
 
       /** @private */
     _timeoutId = null;
@@ -200,7 +207,8 @@ eventEmitter.on('tram', function() {
    */
 eventEmitter.on('restore', function(color, restTime, percent) {
   setTimeout(function() {
-    var timeout = trafic.config[color.toLowerCase()].timeout * 1000;
+    var traficConfig = trafic.getConfig();
+    var timeout = traficConfig[color.toLowerCase()].timeout * 1000;
     var controlTime = ((timeout / 100) * (percent || 25));
     if(restTime > controlTime) {
       trafic['to' + color](restTime / 1000);
