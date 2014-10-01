@@ -55,7 +55,7 @@ var TraficLight = function(config) {
                 }
             }
         }
-        this['to' + nextColor]();
+        this['to' + nextColor](_config[ nextColor.toLowerCase() ].timeout);
     };
 
       /**
@@ -72,42 +72,48 @@ var TraficLight = function(config) {
 
       /**
        * Переключение в зеленый
+       *
+       * @param {Number} timeout время свечения в секундах
        */
-    this.toGreen = function() {
+    this.toGreen = function(timeout) {
         if(_timeoutId) {
             clearTimeout(_timeoutId);
         }
         this.current = {
             color : 'Green',
-            timeout : _config.green.timeout || 4
+            timeout : timeout || 4
         };
         this.tick();
     };
 
       /**
        * Переключение в желтый
+       *
+       * @param {Number} timeout время свечения в секундах
        */
-    this.toYellow = function() {
+    this.toYellow = function(timeout) {
         if(_timeoutId) {
             clearTimeout(_timeoutId);
         }
         this.current = {
             color : 'Yellow',
-            timeout : _config.yellow.timeout || 3
+            timeout : timeout || 3
         };
         this.tick();
     };
 
       /**
        * Переключение в красный
+       *
+       * @param {Number} timeout время свечения в секундах
        */
-    this.toRed = function() {
+    this.toRed = function(timeout) {
         if(_timeoutId) {
             clearTimeout(_timeoutId);
         }
         this.current = {
             color : 'Red',
-            timeout : _config.red.timeout || 5
+            timeout : timeout || 5
         };
         this.tick();
     };
