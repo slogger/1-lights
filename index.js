@@ -180,12 +180,10 @@ eventEmitter.on('stop', function() {
    * 5) После того как трамвай проехал, говорим что можно востановится
    */
 eventEmitter.on('tram', function() {
-  console.log('Трамвай близко');
   var currentTime = new Date();
   var previousColor = trafic.state();
   var restTime = (trafic.current.timeout * 1000) - (currentTime - trafic.current.startTime);
   setTimeout(function() {
-    console.log('Трамвай приехал');
     trafic.toGreen(10);
   }, 3000);
   eventEmitter.emit('restore', previousColor, restTime);
@@ -202,7 +200,6 @@ eventEmitter.on('tram', function() {
    */
 eventEmitter.on('restore', function(color, restTime, percent) {
   setTimeout(function() {
-    console.log('Трамвай проехал');
     var timeout = trafic.config[color.toLowerCase()].timeout * 1000;
     var controlTime = ((timeout / 100) * (percent || 25));
     if(restTime > controlTime) {
