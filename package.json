@@ -9,5 +9,9 @@
   },
   "bugs": {
     "url": "https://github.com/slogger/1-lights/issues"
+  },
+  "dependencies": {
+    "jshint": "~2.5.6",
+    "jscs": "~1.6.2"
   }
 }

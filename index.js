@@ -3,7 +3,7 @@ var events = require('events'),
 
 var config = {
     green : {
-        timeout : 4
+        timeout : 3
     },
     yellow : {
         timeout : 2
@@ -23,11 +23,14 @@ var config = {
 var TraficLight = function(config) {
     this.current = {
         color : null,
-        timeout : null
+        timeout : null,
+        startTime : null
     };
 
       /** @private */
     _config = config;
+
+    this.config = config;
 
       /** @private */
     _timeoutId = null;
@@ -84,7 +87,8 @@ var TraficLight = function(config) {
         }
         this.current = {
             color : 'Green',
-            timeout : timeout || 4
+            timeout : timeout || 4,
+            startTime : new Date()
         };
         this.tick();
     };
@@ -100,7 +104,8 @@ var TraficLight = function(config) {
         }
         this.current = {
             color : 'Yellow',
-            timeout : timeout || 3
+            timeout : timeout || 3,
+            startTime : new Date()
         };
         this.tick();
     };
@@ -116,7 +121,8 @@ var TraficLight = function(config) {
         }
         this.current = {
             color : 'Red',
-            timeout : timeout || 5
+            timeout : timeout || 5,
+            startTime : new Date()
         };
         this.tick();
     };
@@ -166,14 +172,53 @@ eventEmitter.on('stop', function() {
 
   /**
    * Обработчик события 'tram'
+   *
+   * 1) Запоминаем цвет который горит сейчас
+   * 2) Запоминаем сколько ему еще гореть
+   * 3) Высчитываем разницу между
+   * 4) Через 3 секунды переключаемся на зеленый на 10 сек
+   * 5) После того как трамвай проехал, говорим что можно востановится
    */
 eventEmitter.on('tram', function() {
-  setTimeout(trafic.toGreen(10), 3000);
+  console.log('Трамвай близко');
+  var currentTime = new Date();
+  var previousColor = trafic.state();
+  var restTime = (trafic.current.timeout * 1000) - (currentTime - trafic.current.startTime);
+  setTimeout(function() {
+    console.log('Трамвай приехал');
+    trafic.toGreen(10);
+  }, 3000);
+  eventEmitter.emit('restore', previousColor, restTime);
+});
+
+  /**
+   * Обработчик события 'restore'
+   *
+   * Если гореть остается меньше percent % от изначального времени, переключаемся на следующий цвет
+   *
+   * @param {string} color цвет в котором мы были до трамвая
+   * @param {number} restTime остаток времени
+   * @param {number} percent
+   */
+eventEmitter.on('restore', function(color, restTime, percent) {
+  setTimeout(function() {
+    console.log('Трамвай проехал');
+    var timeout = trafic.config[color.toLowerCase()].timeout * 1000;
+    var controlTime = ((timeout / 100) * (percent || 25));
+    if(restTime > controlTime) {
+      trafic['to' + color](restTime / 1000);
+    } else {
+      trafic.current.color = color;
+      trafic.next();
+    }
+  }, 13000);
 });
 
 var trafic = new TraficLight(config);
-// trafic.run();
 var intervalId = setInterval(function() { console.log(trafic.state()); }, 1000);
 
-setTimeout(function() {eventEmitter.emit('stop');}, 20000);
+// Делает программу не вечной
+setTimeout(function() {eventEmitter.emit('stop');}, 40000);
+
+// Указываем через сколько поедет трамвай
 setTimeout(function() {eventEmitter.emit('tram');}, 8000);
