@@ -49,12 +49,12 @@ var TraficLight = function(config) {
         for( var i = 0; i < _config.order.length; i++ ) {
             if( this.current.color === _config.order[i] ) {
                 if( i !== _config.order.length - 1 ) {
-                    nextColor = _config.order[i + 1]
+                    nextColor = _config.order[i + 1];
                 } else {
-                    nextColor = _config.order[0]
+                    nextColor = _config.order[0];
                 }
-            };
-        };
+            }
+        }
         this['to' + nextColor]();
     };
 
@@ -76,7 +76,7 @@ var TraficLight = function(config) {
     this.toGreen = function() {
         if(_timeoutId) {
             clearTimeout(_timeoutId);
-        };
+        }
         this.current = {
             color : 'Green',
             timeout : _config.green.timeout || 4
@@ -90,7 +90,7 @@ var TraficLight = function(config) {
     this.toYellow = function() {
         if(_timeoutId) {
             clearTimeout(_timeoutId);
-        };
+        }
         this.current = {
             color : 'Yellow',
             timeout : _config.yellow.timeout || 3
@@ -104,7 +104,7 @@ var TraficLight = function(config) {
     this.toRed = function() {
         if(_timeoutId) {
             clearTimeout(_timeoutId);
-        };
+        }
         this.current = {
             color : 'Red',
             timeout : _config.red.timeout || 5
@@ -121,7 +121,7 @@ var TraficLight = function(config) {
         var time = 0;
         for( var i = 0; i < _config.order.length; i++ ) {
             time += _config[( _config.order[i].toLowerCase() )].timeout;
-        };
+        }
         return time * 1000;
     };
 
@@ -147,27 +147,5 @@ var TraficLight = function(config) {
     (this.run());
 };
 
-// var trafic = new TraficLight(config);
-// var intervalId = setInterval(function() {console.log(trafic.state())}, 1000);
-
-  /**
-   * Переключение в синий
-   */
-TraficLight.prototype.toBlue = function() {
-    if(_timeoutId) {
-        clearTimeout(_timeoutId);
-    };
-    this.current = {
-        color : 'Blue',
-        timeout : _config.blue.timeout || 5
-    };
-    this.tick();
-};
-
-config.blue = { timeout : 3 };
-config.order.push('Blue')
-
 var trafic = new TraficLight(config);
-var intervalId = setInterval(function() {console.log(trafic.state())}, 1000);
-
-// setTimeout(function() {trafic.stop(); clearInterval(intervalId)}, trafic.getTime());
+var intervalId = setInterval(function() { console.log(trafic.state()); }, 1000);
