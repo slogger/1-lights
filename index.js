@@ -147,5 +147,22 @@ var TraficLight = function(config) {
     (this.run());
 };
 
+  /**
+   * Переключение в синий
+   */
+TraficLight.prototype.toBlue = function() {
+    if(_timeoutId) {
+        clearTimeout(_timeoutId);
+    }
+    this.current = {
+        color : 'Blue',
+        timeout : _config.blue.timeout || 5
+    };
+    this.tick();
+};
+
+config.blue = { timeout : 3 };
+config.order.push('Blue');
+
 var trafic = new TraficLight(config);
 var intervalId = setInterval(function() { console.log(trafic.state()); }, 1000);
