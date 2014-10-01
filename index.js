@@ -160,7 +160,6 @@ var TraficLight = function(config) {
        * Остановка светофора
        */
     this.stop = function() {
-        console.log("STOP!");
         clearTimeout(this._timeoutId);
     };
 
