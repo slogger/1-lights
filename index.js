@@ -1,3 +1,6 @@
+var events = require('events'),
+    eventEmitter = new events.EventEmitter();
+
 var config = {
     green : {
         timeout : 4
@@ -62,7 +65,7 @@ var TraficLight = function(config) {
        * Момент работы
        */
     this.tick = function() {
-        _timeoutId = setTimeout(
+        this._timeoutId = setTimeout(
           function() {
               this.next();
           }.bind(this),
@@ -76,8 +79,8 @@ var TraficLight = function(config) {
        * @param {Number} timeout время свечения в секундах
        */
     this.toGreen = function(timeout) {
-        if(_timeoutId) {
-            clearTimeout(_timeoutId);
+        if(this._timeoutId) {
+            clearTimeout(this._timeoutId);
         }
         this.current = {
             color : 'Green',
@@ -92,8 +95,8 @@ var TraficLight = function(config) {
        * @param {Number} timeout время свечения в секундах
        */
     this.toYellow = function(timeout) {
-        if(_timeoutId) {
-            clearTimeout(_timeoutId);
+        if(this._timeoutId) {
+            clearTimeout(this._timeoutId);
         }
         this.current = {
             color : 'Yellow',
@@ -108,8 +111,8 @@ var TraficLight = function(config) {
        * @param {Number} timeout время свечения в секундах
        */
     this.toRed = function(timeout) {
-        if(_timeoutId) {
-            clearTimeout(_timeoutId);
+        if(this._timeoutId) {
+            clearTimeout(this._timeoutId);
         }
         this.current = {
             color : 'Red',
@@ -144,7 +147,8 @@ var TraficLight = function(config) {
        * Остановка светофора
        */
     this.stop = function() {
-        clearTimeout(_timeoutId);
+        console.log("STOP!");
+        clearTimeout(this._timeoutId);
     };
 
       /**
@@ -152,6 +156,24 @@ var TraficLight = function(config) {
        */
     (this.run());
 };
+  /**
+   * Обработчик события 'stop'
+   */
+eventEmitter.on('stop', function() {
+  trafic.stop();
+  clearInterval(intervalId);
+});
+
+  /**
+   * Обработчик события 'tram'
+   */
+eventEmitter.on('tram', function() {
+  setTimeout(trafic.toGreen(10), 3000);
+});
 
 var trafic = new TraficLight(config);
+// trafic.run();
 var intervalId = setInterval(function() { console.log(trafic.state()); }, 1000);
+
+setTimeout(function() {eventEmitter.emit('stop');}, 20000);
+setTimeout(function() {eventEmitter.emit('tram');}, 8000);
