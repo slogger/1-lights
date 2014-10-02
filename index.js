@@ -62,7 +62,7 @@ var TraficLight = function(config) {
                 nextColor = _config.order[ (++i % numberColors) ];
             }
         }
-        
+
         var timeout = _config.timeout[ nextColor.toLowerCase() ];
         this.switch(nextColor, timeout);
     };
@@ -138,7 +138,7 @@ var TraficLight = function(config) {
        * @param {string} color
        */
     this.run = function(color) {
-        this[ 'to' + ( color || _config.order[0] ) ]();
+        this.switch( color || _config.order[0] );
     };
 
       /**
