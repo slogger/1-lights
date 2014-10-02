@@ -56,75 +56,67 @@ var TraficLight = function(config) {
     this.next = function() {
         var nextColor;
         var numberColors = _config.order.length;
+
         for( var i = 0; i < numberColors; i++ ) {
             if( this.current.color === _config.order[i] ) {
                 nextColor = _config.order[ (++i % numberColors) ];
             }
         }
-        this[ 'to' + nextColor ]( _config.timeout[ nextColor.toLowerCase() ] );
+        
+        var timeout = _config.timeout[ nextColor.toLowerCase() ];
+        this.switch(nextColor, timeout);
     };
 
       /**
-       * Момент работы
+       * Переключение цветов
+       *
+       * @param {string} color
+       * @param {Number} timeout время свечения в мсек
        */
-    this.tick = function() {
-        this._timeoutId = setTimeout(
-          function() {
-              this.next();
-          }.bind(this),
-          this.current.timeout
-        );
+    this.switch = function(color, timeout) {
+      if(this._timeoutId) {
+          clearTimeout(this._timeoutId);
+      }
+
+      this.current = {
+          color : color,
+          timeout : timeout,
+          startTime : new Date()
+      };
+
+      this._timeoutId = setTimeout(
+        function() {
+            this.next();
+        }.bind(this),
+        this.current.timeout
+      );
     };
 
       /**
        * Переключение в зеленый
        *
-       * @param {Number} timeout время свечения в секундах
+       * @param {Number} timeout время свечения в мсек
        */
     this.toGreen = function(timeout) {
-        if(this._timeoutId) {
-            clearTimeout(this._timeoutId);
-        }
-        this.current = {
-            color : 'Green',
-            timeout : timeout || 4000,
-            startTime : new Date()
-        };
-        this.tick();
+        this.switch("Green", timeout || 4000 );
     };
 
       /**
        * Переключение в желтый
        *
-       * @param {Number} timeout время свечения в секундах
+       * @param {Number} timeout время свечения в мсек
        */
     this.toYellow = function(timeout) {
-        if(this._timeoutId) {
-            clearTimeout(this._timeoutId);
-        }
-        this.current = {
-            color : 'Yellow',
-            timeout : timeout || 3000,
-            startTime : new Date()
-        };
-        this.tick();
+        this.switch("Yellow", timeout || 3000 );
     };
 
       /**
        * Переключение в красный
        *
-       * @param {Number} timeout время свечения в секундах
+       * @param {Number} timeout время свечения в мсек
        */
     this.toRed = function(timeout) {
-        if(this._timeoutId) {
-            clearTimeout(this._timeoutId);
-        }
-        this.current = {
-            color : 'Red',
-            timeout : timeout || 5000,
-            startTime : new Date()
-        };
-        this.tick();
+        this.switch("Red", timeout || 5000 );
     };
 
       /**
