@@ -2,14 +2,14 @@ var events = require('events'),
     eventEmitter = new events.EventEmitter();
 
 var config = {
-    green : {
-        timeout : 3
-    },
-    yellow : {
-        timeout : 2
-    },
-    red : {
-        timeout : 3
+    timeout : {
+        green : 3000,
+        yellow : 2000,
+        red : 3000,
+        tram : {
+          arrival : 3000,
+          passage : 10000,
+        }
     },
     order : ['Green', 'Yellow', 'Red']
 };
@@ -27,8 +27,8 @@ var TraficLight = function(config) {
         startTime : null
     };
 
-      /** @private */
     _config = config;
+    _timeoutId = null;
 
       /**
        * Геттер для конфига
@@ -38,9 +38,6 @@ var TraficLight = function(config) {
     this.getConfig = function() {
       return _config;
     };
-
-      /** @private */
-    _timeoutId = null;
 
       /**
        * Показывает состояние светофора
@@ -54,21 +51,16 @@ var TraficLight = function(config) {
       /**
        * Переключение светофора
        *
-       * @private
        * @this {TraficLight}
        */
     this.next = function() {
         var nextColor;
         for( var i = 0; i < _config.order.length; i++ ) {
             if( this.current.color === _config.order[i] ) {
-                if( i !== _config.order.length - 1 ) {
-                    nextColor = _config.order[i + 1];
-                } else {
-                    nextColor = _config.order[0];
-                }
+                nextColor = _config.order[ (++i % 3) ];
             }
         }
-        this['to' + nextColor](_config[ nextColor.toLowerCase() ].timeout);
+        this[ 'to' + nextColor ]( _config.timeout[ nextColor.toLowerCase() ] );
     };
 
       /**
@@ -79,7 +71,7 @@ var TraficLight = function(config) {
           function() {
               this.next();
           }.bind(this),
-          this.current.timeout * 1000
+          this.current.timeout
         );
     };
 
@@ -94,7 +86,7 @@ var TraficLight = function(config) {
         }
         this.current = {
             color : 'Green',
-            timeout : timeout || 4,
+            timeout : timeout || 4000,
             startTime : new Date()
         };
         this.tick();
@@ -111,7 +103,7 @@ var TraficLight = function(config) {
         }
         this.current = {
             color : 'Yellow',
-            timeout : timeout || 3,
+            timeout : timeout || 3000,
             startTime : new Date()
         };
         this.tick();
@@ -128,7 +120,7 @@ var TraficLight = function(config) {
         }
         this.current = {
             color : 'Red',
-            timeout : timeout || 5,
+            timeout : timeout || 5000,
             startTime : new Date()
         };
         this.tick();
@@ -142,9 +134,9 @@ var TraficLight = function(config) {
     this.getTime = function() {
         var time = 0;
         for( var i = 0; i < _config.order.length; i++ ) {
-            time += _config[( _config.order[i].toLowerCase() )].timeout;
+            time += _config.timeout[ i.toLowerCase() ];
         }
-        return time * 1000;
+        return time;
     };
 
       /**
@@ -153,7 +145,7 @@ var TraficLight = function(config) {
        * @param {string} color
        */
     this.run = function(color) {
-        this['to' + ( color || _config.order[0] )]();
+        this[ 'to' + ( color || _config.order[0] ) ]();
     };
 
       /**
@@ -180,18 +172,20 @@ eventEmitter.on('stop', function() {
    * Обработчик события 'tram'
    *
    * 1) Запоминаем цвет который горит сейчас
-   * 2) Запоминаем сколько ему еще гореть
-   * 3) Высчитываем разницу между
-   * 4) Через 3 секунды переключаемся на зеленый на 10 сек
-   * 5) После того как трамвай проехал, говорим что можно востановится
+   * 2) Высчитываем сколько ему еще гореть
+   * 3) Через config.timeout.tram.arrival мсек переключаемся в зеленый на config.timeout.tram.passage мсек
+   * 4) После того как трамвай проехал, говорим что можно востановится
    */
 eventEmitter.on('tram', function() {
   var currentTime = new Date();
   var previousColor = trafic.state();
-  var restTime = (trafic.current.timeout * 1000) - (currentTime - trafic.current.startTime);
+  var restTime = trafic.current.timeout - (currentTime - trafic.current.startTime);
+  var tramTime = trafic.getConfig().timeout.tram;
+
   setTimeout(function() {
-    trafic.toGreen(10);
-  }, 3000);
+    trafic.toGreen( tramTime.passage );
+  }, tramTime.arrival);
+
   eventEmitter.emit('restore', previousColor, restTime);
 });
 
@@ -205,17 +199,21 @@ eventEmitter.on('tram', function() {
    * @param {number} percent
    */
 eventEmitter.on('restore', function(color, restTime, percent) {
+  var tramTime = trafic.getConfig().timeout.tram,
+      tramTimeAll = tramTime.arrival + tramTime.passage;
+
   setTimeout(function() {
     var traficConfig = trafic.getConfig();
-    var timeout = traficConfig[color.toLowerCase()].timeout * 1000;
+    var timeout = traficConfig.timeout[ color.toLowerCase() ];
     var controlTime = ((timeout / 100) * (percent || 25));
+
     if(restTime > controlTime) {
-      trafic['to' + color](restTime / 1000);
+      trafic['to' + color](restTime);
     } else {
       trafic.current.color = color;
       trafic.next();
     }
-  }, 13000);
+  }, tramTimeAll);
 });
 
 var trafic = new TraficLight(config);
