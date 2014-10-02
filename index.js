@@ -124,11 +124,13 @@ var TraficLight = function(config) {
        *
        * @return {number} Время полного цикла светофора
        */
-    this.getTime = function() {
+    this.getCycleTime = function() {
         var time = 0;
-        for( var i = 0; i < _config.order.length; i++ ) {
-            time += _config.timeout[ i.toLowerCase() ];
-        }
+        _config.order.map(
+          function(color){
+            time += _config.timeout[ color.toLowerCase() ];
+          }
+        );
         return time;
     };
 
