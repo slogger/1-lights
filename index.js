@@ -54,19 +54,28 @@ var TraficLight = function(config) {
        * @this {TraficLight}
        */
     this.next = function() {
-        var nextColor;
         var numberColors = _config.order.length;
-
-        for( var i = 0; i < numberColors; i++ ) {
-            if( this.current.color === _config.order[i] ) {
-                nextColor = _config.order[ (++i % numberColors) ];
-            }
-        }
+        var index = _config.order.indexOf(this.current.color);
+        var nextColor = _config.order[ (++index % numberColors) ];
 
         var timeout = _config.timeout[ nextColor.toLowerCase() ];
         this.switch(nextColor, timeout);
     };
 
+      /**
+       * Момент работы
+       */
+    this.tick = function() {
+        if(this._timeoutId) {
+            clearTimeout(this._timeoutId);
+        }
+        this._timeoutId = setTimeout(
+          function() {
+              this.next();
+          }.bind(this),
+          this.current.timeout
+        );
+    };
       /**
        * Переключение цветов
        *
@@ -74,22 +83,13 @@ var TraficLight = function(config) {
        * @param {Number} timeout время свечения в мсек
        */
     this.switch = function(color, timeout) {
-      if(this._timeoutId) {
-          clearTimeout(this._timeoutId);
-      }
-
       this.current = {
           color : color,
           timeout : timeout,
           startTime : new Date()
       };
 
-      this._timeoutId = setTimeout(
-        function() {
-            this.next();
-        }.bind(this),
-        this.current.timeout
-      );
+      this.tick();
     };
 
       /**
@@ -98,7 +98,7 @@ var TraficLight = function(config) {
        * @param {Number} timeout время свечения в мсек
        */
     this.toGreen = function(timeout) {
-        this.switch("Green", timeout || 4000 );
+        this.switch("Green", timeout );
     };
 
       /**
@@ -107,7 +107,7 @@ var TraficLight = function(config) {
        * @param {Number} timeout время свечения в мсек
        */
     this.toYellow = function(timeout) {
-        this.switch("Yellow", timeout || 3000 );
+        this.switch("Yellow", timeout );
     };
 
       /**
@@ -116,7 +116,7 @@ var TraficLight = function(config) {
        * @param {Number} timeout время свечения в мсек
        */
     this.toRed = function(timeout) {
-        this.switch("Red", timeout || 5000 );
+        this.switch("Red", timeout );
     };
 
       /**
@@ -135,10 +135,12 @@ var TraficLight = function(config) {
       /**
        * Запуск светофора
        *
-       * @param {string} color
+       * @param {string} clr
        */
-    this.run = function(color) {
-        this.switch( color || _config.order[0] );
+    this.run = function(clr) {
+        color = clr || _config.order[0];
+        var timeout = _config.timeout[ color.toLowerCase() ];
+        this.switch( color, timeout );
     };
 
       /**
