@@ -160,6 +160,7 @@ var TraficLight = function(config) {
        */
     (this.run());
 };
+
   /**
    * Обработчик события 'stop'
    */
