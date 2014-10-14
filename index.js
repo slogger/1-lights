@@ -1,4 +1,5 @@
-var events = require('events'),
+var TraficLight = require('./TraficLight.js'),
+    events = require('events'),
     eventEmitter = new events.EventEmitter();
 
 var config = {
@@ -15,147 +16,30 @@ var config = {
 };
 
   /**
-   * Светофор
+   * Переключение в зеленый
    *
-   * @this {TraficLight}
-   * @param {Object} config
+   * @param {Number} timeout время свечения в мсек
    */
-var TraficLight = function(config) {
-    this.current = {
-        color : null,
-        timeout : null,
-        startTime : null
-    };
+TraficLight.prototype.toGreen = function(timeout) {
+    this.switch("Green", timeout );
+};
 
-    _config = config;
-    _timeoutId = null;
+  /**
+   * Переключение в желтый
+   *
+   * @param {Number} timeout время свечения в мсек
+   */
+TraficLight.prototype.toYellow = function(timeout) {
+    this.switch("Yellow", timeout );
+};
 
-      /**
-       * Геттер для конфига
-       *
-       * @return {Object} config
-       */
-    this.getConfig = function() {
-      return _config;
-    };
-
-      /**
-       * Показывает состояние светофора
-       *
-       * @return {string} Цвет светофора
-       */
-    this.state = function() {
-        return this.current.color;
-    };
-
-      /**
-       * Переключение светофора
-       *
-       * @this {TraficLight}
-       */
-    this.next = function() {
-        var numberColors = _config.order.length;
-        var index = _config.order.indexOf(this.current.color);
-        var nextColor = _config.order[ (++index % numberColors) ];
-
-        var timeout = _config.timeout[ nextColor.toLowerCase() ];
-        this.switch(nextColor, timeout);
-    };
-
-      /**
-       * Момент работы
-       */
-    this.tick = function() {
-        if(this._timeoutId) {
-            clearTimeout(this._timeoutId);
-        }
-        this._timeoutId = setTimeout(
-          function() {
-              this.next();
-          }.bind(this),
-          this.current.timeout
-        );
-    };
-      /**
-       * Переключение цветов
-       *
-       * @param {string} color
-       * @param {Number} timeout время свечения в мсек
-       */
-    this.switch = function(color, timeout) {
-      this.current = {
-          color : color,
-          timeout : timeout,
-          startTime : new Date()
-      };
-
-      this.tick();
-    };
-
-      /**
-       * Переключение в зеленый
-       *
-       * @param {Number} timeout время свечения в мсек
-       */
-    this.toGreen = function(timeout) {
-        this.switch("Green", timeout );
-    };
-
-      /**
-       * Переключение в желтый
-       *
-       * @param {Number} timeout время свечения в мсек
-       */
-    this.toYellow = function(timeout) {
-        this.switch("Yellow", timeout );
-    };
-
-      /**
-       * Переключение в красный
-       *
-       * @param {Number} timeout время свечения в мсек
-       */
-    this.toRed = function(timeout) {
-        this.switch("Red", timeout );
-    };
-
-      /**
-       * Время полного цикла светофора
-       *
-       * @return {number} Время полного цикла светофора
-       */
-    this.getCycleTime = function() {
-        var time = 0;
-        _config.order.map(
-          function(color){
-            time += _config.timeout[ color.toLowerCase() ];
-          }
-        );
-        return time;
-    };
-
-      /**
-       * Запуск светофора
-       *
-       * @param {string} clr
-       */
-    this.run = function(clr) {
-        color = clr || _config.order[0];
-        var timeout = _config.timeout[ color.toLowerCase() ];
-        this.switch( color, timeout );
-    };
-
-      /**
-       * Остановка светофора
-       */
-    this.stop = function() {
-        clearTimeout(this._timeoutId);
-    };
-
-      /**
-       * Автостарт светофора
-       */
-    (this.run());
+  /**
+   * Переключение в красный
+   *
+   * @param {Number} timeout время свечения в мсек
+   */
+TraficLight.prototype.toRed = function(timeout) {
+    this.switch("Red", timeout );
 };
 
   /**
@@ -215,6 +99,8 @@ eventEmitter.on('restore', function(color, restTime, percent) {
 });
 
 var trafic = new TraficLight(config);
+trafic.run();
+
 var intervalId = setInterval(function() { console.log(trafic.state()); }, 1000);
 
 // Делает программу не вечной
